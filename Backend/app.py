@@ -2,7 +2,6 @@ from flask import Flask, request, jsonify
 import joblib
 from model_utils import analyze_review
 from flask_cors import CORS
-from tensorflow.keras.models import load_model
 app = Flask(__name__)
 
 CORS(app)
