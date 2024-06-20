@@ -1,6 +1,5 @@
-import React from 'react';
 import Analyze from './Analyze';
-
+import './index.css'; 
 const App = () => {
     return (
         <div className="App">

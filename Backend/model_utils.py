@@ -1,110 +1,108 @@
 import re
-from tensorflow.keras.preprocessing.text import Tokenizer
 from tensorflow.keras.preprocessing.sequence import pad_sequences
+from textblob import TextBlob
+import pickle
+from tensorflow.keras.models import load_model
+from nltk.tokenize import word_tokenize
+from nltk.corpus import stopwords
+from nltk.stem import WordNetLemmatizer
 
 contractions_dict = {
-    r"don": "do not",
-    r"doesn": "does not",
-    r"didn": "did not",
-    r"haven": "have not",
-    r"hasn": "has not",
-    r"hadn": "had not",
-    r"won": "will not",
-    r"wouldn": "would not",
-    r"couldn": "could not",
-    r"shouldn": "should not",
-    r"mightn": "might not",
-    r"mustn": "must not",
-    r"weren": "were not",
-    r"wasn": "was not",
-    r"ain": "is not",
-    r"won": "would not"
+    r"don't": "do not",
+    r"doesn't": "does not",
+    r"didn't": "did not",
+    r"haven't": "have not",
+    r"hasn't": "has not",
+    r"hadn't": "had not",
+    r"won't": "will not",
+    r"wouldn't": "would not",
+    r"couldn't": "could not",
+    r"shouldn't": "should not",
+    r"mightn't": "might not",
+    r"mustn't": "must not",
+    r"weren't": "were not",
+    r"wasn't": "was not",
+    r"ain't": "is not",
+    r"won't": "would not"
 }
+
 def expand_contractions(text):
     for contraction, expanded_form in contractions_dict.items():
         text = re.sub(contraction, expanded_form, text, flags=re.IGNORECASE)
     return text
 
-def preprocess_text(sen):
+def remove_tags(text):
+    return re.sub(r'<[^>]+>', '', text)
 
-    sentence = sen.lower()
+def preprocess_text(text):
+    text = remove_tags(text)
+    text = expand_contractions(text)
+    tokens = word_tokenize(text)
+    tokens = [token.lower() for token in tokens]
+    tokens = [token for token in tokens if token.isalpha()]
+    stop_words = set(stopwords.words('english'))
+    stop_words.remove('not')
+    tokens = [token for token in tokens if token not in stop_words]
+    
+    lemmatizer = WordNetLemmatizer()
+    tokens = [lemmatizer.lemmatize(token) for token in tokens]
+    text = ' '.join(tokens)
+    return text
 
-    sentence = re.sub('[^a-zA-Z]', ' ', sentence)
+def correct_spelling(text):
+    blob = TextBlob(text)
+    corrected_text = str(blob.correct())
+    return corrected_text
 
-    # Single character removal
-    sentence = re.sub(r"\s+[a-zA-Z]\s+", ' ', sentence)  # When we remove apostrophe from the word "Mark's", the apostrophe is replaced by an empty space. Hence, we are left with single character "s" that we are removing here.
+def analyze_review(review, model, tokenizer):
+    corrected = correct_spelling(review.lower())
+    review = preprocess_text(corrected)
+    sequence = tokenizer.texts_to_sequences([review])
+    padded_sequence = pad_sequences(sequence, maxlen=100, padding='post')
+    prediction = model.predict(padded_sequence)
+    sentiment = "positive" if prediction > 0.5 else "negative"
+    stars = round(float(prediction * 5), 1)  
 
-    # Remove multiple spaces
-    sentence = re.sub(r'\s+', ' ', sentence)  # Next, we remove all the single characters and replace it by a space which creates multiple spaces in our text. Finally, we remove the multiple spaces from our text as well.
+    departments_keywords = {
+        "Customer Service": [
+            "service", "support", "customer service", "help", "response", "rude", "behavior", "polite", "agent", "call", "email",
+            "assistance", "aid", "care", "courtesy", "treatment", "interaction", "representative", "communication", "reply", "feedback"
+        ],
+        "Product Quality": [
+            "product", "quality", "defective", "broken", "durable", "material", "build", "manufacture", "craftsmanship", "faulty", "not working", "difficult",
+            "item", "standard", "wastage", "flawed", "damaged", "component", "construction", "production", "workmanship", "malfunctioning", "inoperative", "challenging"
+        ],
+        "Shipping": [
+            "shipping", "delayed", "package", "sealed", "arrived", "late delivery", "courier", "tracking", "shipment", "dispatch", "fast", "slow",
+            "delivery", "postponed", "parcel", "wrapped", "received", "carrier", "monitoring", "consignment", "send", "quick"
+        ],
+        "Technical Support": [
+            "technical", "tech support", "IT", "software", "hardware", "bug", "issue", "glitch", "error", "malfunction", "install", "update",
+            "technological", "technical assistance", "information technology", "program", "device", "fault", "problem", "flaw", "mistake", "breakdown", "setup", "upgrade"
+        ],
+        "Marketing": [
+            "marketing", "advertising", "promotion", "campaign", "brand", "advertised", "strategy", "market", "target",
+            "promotion", "publicity", "advertisement", "drive", "branding", "marketed"
+        ],
+        "Sales": [
+            "sales", "purchase", "buy", "order", "pricing", "discount", "offer", "deal", "cost", "checkout", "price",
+            "transactions", "acquisition", "procure", "command", "rate", "reduction", "proposal", "bargain", "expense", "payment", "value"
+        ]
+    }
 
-    #expanded forms
-    sentence = expand_contractions(sentence)
+    def assign_departments(review):
+        assigned_departments = []
+        for department, keywords in departments_keywords.items():
+            if any(keyword in review.lower() for keyword in keywords):
+                assigned_departments.append(department)
+        return ', '.join(assigned_departments) if assigned_departments else "General"
 
-    with open('stopwords.txt', 'r') as file:
-      stopwords = {line.strip() for line in file}
+    departments = assign_departments(review)
 
-    # Remove Stopwords
-    pattern = re.compile(r'\b(' + r'|'.join(stopwords) + r')\b\s*')
-    sentence = pattern.sub('', sentence)
+    return sentiment, departments,stars
 
-    return sentence
-
-
-def analyze_review(review, model):
-  # Perform sentiment analysis
-  # Preprocess the review text
-  preprocessed_text = preprocess_text(review)
-
-  word_tokenizer = Tokenizer()
-
-  # Convert the preprocessed text to a sequence of integers
-  sequence = word_tokenizer.texts_to_sequences([preprocessed_text])
-  # Pad the sequence to a fixed length
-  padded_sequence = pad_sequences(sequence, maxlen=100, padding='post')
-
-  # Predict the sentiment using the model
-  prediction = model.predict(padded_sequence)[0][0]
-
-  # Determine the sentiment based on the prediction threshold
-  sentiment = "positive" if prediction > 0.5 else "negative"  # Assuming model.predict returns the sentiment label
-
-  # Dummy department classification based on keywords
-  departments_keywords = {
-    "Customer Service": [
-      "service", "support", "customer service", "help", "response", "rude", "behavior", "polite", "agent", "call", "email",
-      "assistance", "aid", "care", "courtesy", "treatment", "interaction", "representative", "communication", "reply", "feedback"
-    ],
-    "Product Quality": [
-      "product", "quality", "defective", "broken", "durable", "material", "build", "manufacture", "craftsmanship", "faulty", "not working", "difficult",
-      "item", "standard", "wastage", "flawed", "damaged", "component", "construction", "production", "workmanship", "malfunctioning", "inoperative", "challenging"
-    ],
-    "Shipping": [
-      "shipping", "delayed", "package", "sealed", "arrived", "late delivery", "courier", "tracking", "shipment", "dispatch", "fast", "slow",
-      "delivery", "postponed", "parcel", "wrapped", "received", "carrier", "monitoring", "consignment", "send", "quick"
-    ],
-    "Technical Support": [
-      "technical", "tech support", "IT", "software", "hardware", "bug", "issue", "glitch", "error", "malfunction", "install", "update",
-      "technological", "technical assistance", "information technology", "program", "device", "fault", "problem", "flaw", "mistake", "breakdown", "setup", "upgrade"
-    ],
-    "Marketing": [
-      "marketing", "advertising", "promotion", "campaign", "brand", "advertised", "strategy", "market", "target",
-      "promotion", "publicity", "advertisement", "drive", "branding", "marketed"
-    ],
-    "Sales": [
-      "sales", "purchase", "buy", "order", "pricing", "discount", "offer", "deal", "cost", "checkout", "price",
-      "transactions", "acquisition", "procure", "command", "rate", "reduction", "proposal", "bargain", "expense", "payment", "value"
-    ]
-  }
-
-  # Function to assign departments based on keywords
-  def assign_departments(review):
-    assigned_departments = []
-    for department, keywords in departments_keywords.items():
-      if any(keyword in review.lower() for keyword in keywords):
-        assigned_departments.append(department)
-    return ', '.join(assigned_departments) if assigned_departments else "General"
-
-  # Call the department assignment function
-  departments = assign_departments(review)
-
-  return sentiment, departments
+def load_model_and_tokenizer(model_path, tokenizer_path):
+    model = load_model(model_path)
+    with open(tokenizer_path, 'rb') as handle:
+        tokenizer = pickle.load(handle)
+    return model, tokenizer

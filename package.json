@@ -1,0 +1,9 @@
+{
+  "devDependencies": {
+    "tailwindcss": "^3.4.4"
+  },
+  "dependencies": {
+    "framer-motion": "^11.2.11",
+    "react-rating-stars-component": "^2.2.0"
+  }
+}
