@@ -69,7 +69,7 @@ def analyze_review(review, model, tokenizer):
             "assistance", "aid", "care", "courtesy", "treatment", "interaction", "representative", "communication", "reply", "feedback"
         ],
         "Product Quality": [
-            "product", "quality", "defective", "broken", "durable", "material", "build", "manufacture", "craftsmanship", "faulty", "not working", "difficult",
+            "product", "quality", "fabric","defective", "broken", "durable", "material", "build", "manufacture", "craftsmanship", "faulty", "not working", "difficult",
             "item", "standard", "wastage", "flawed", "damaged", "component", "construction", "production", "workmanship", "malfunctioning", "inoperative", "challenging"
         ],
         "Shipping": [
@@ -86,7 +86,7 @@ def analyze_review(review, model, tokenizer):
         ],
         "Sales": [
             "sales", "purchase", "buy", "order", "pricing", "discount", "offer", "deal", "cost", "checkout", "price",
-            "transactions", "acquisition", "procure", "command", "rate", "reduction", "proposal", "bargain", "expense", "payment", "value"
+            "transactions", "acquisition", "procure", "command", "rate", "reduction", "proposal", "bargain", "expense","expensive" "payment", "value"
         ]
     }
 

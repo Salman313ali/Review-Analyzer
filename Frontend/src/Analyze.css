@@ -10,15 +10,15 @@ body {
   }
   
   .container {
-    width: 100%;
+    width: 120%;
     max-width: 800px; 
     display: flex;
     flex-direction: row;
   }
   
   .content-container {
-    width: 80%; 
-    background-color: #36cae0; 
+    width: 70%; 
+    background-color: #00c9e8e0; 
     padding-left: 50px;
     padding-right: 50px;
     border-radius: 12px;
@@ -28,10 +28,10 @@ body {
 }
 
 .results-container {
-  width: 100%; 
-  background-color: #29d643;
-  padding-left: 60px;
-  padding-right: 60px;
+  width: 80%; 
+  background-color: #8a8b91;
+  padding-left: 30px;
+  padding-right: 30px;
   border-radius: 12px;
   box-shadow: 0 8px 16px rgba(0, 0, 0, 0.3); 
   transition: transform 0.5s ease-in-out;
@@ -89,7 +89,7 @@ body {
 }
 
 .button:hover {
-  background-color: #2b6cb0;
+  background-color: #2dc100;
 }
 
 .button.loading {
@@ -105,7 +105,7 @@ body {
 }
 
 .result {
-  color: #4d4c4c;
+  color: #ffffff;
   width: 100%;
 }
 
