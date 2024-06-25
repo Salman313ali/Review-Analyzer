@@ -1,9 +1,11 @@
 {
-    "builds": [
-      { "src": "Backend/**/*.py", "use": "@vercel/python" }
-    ],
-    "routes": [
-      { "src": "/Backend/(.*)", "dest": "/Backend/$1.py" }
-    ]
-  }
-  
+  "version": 2,
+  "builds": [
+    { "src": "Backend/**/*.py", "use": "@vercel/python" },
+    { "src": "Frontend/**", "use": "@vercel/static" }
+  ],
+  "routes": [
+    { "src": "/analyze", "dest": "/Backend/app.py" },
+    { "src": "/(.*)", "dest": "/Frontend/public/$1" }
+  ]
+}
