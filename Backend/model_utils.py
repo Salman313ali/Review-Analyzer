@@ -86,14 +86,14 @@ def analyze_review(review, model, tokenizer):
         ],
         "Sales": [
             "sales", "purchase", "buy", "order", "pricing", "discount", "offer", "deal", "cost", "checkout", "price",
-            "transactions", "acquisition", "procure", "command", "rate", "reduction", "proposal", "bargain", "expense","expensive" "payment", "value"
+            "transactions", "acquisition", "procure", "command", "rate", "reduction", "proposal", "bargain", "expense","expensive","payment", "value"
         ]
     }
 
     def assign_departments(review):
         assigned_departments = []
         for department, keywords in departments_keywords.items():
-            if any(keyword in review.lower() for keyword in keywords):
+            if any(keyword in review for keyword in keywords):
                 assigned_departments.append(department)
         return ', '.join(assigned_departments) if assigned_departments else "General"
 

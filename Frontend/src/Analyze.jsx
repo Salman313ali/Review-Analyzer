@@ -97,7 +97,6 @@ const Analyze = () => {
         >
           <div className="result">
             <p><span className="label">Sentiment:</span> {sentiment}</p>
-            <p><span className="label">Sentiment:</span> {department}</p>
             {sentiment === 'negative' && department && (
               <p><span className="label">Complaint:</span> The complaint is generated for this department '{department}'</p>
             )}
