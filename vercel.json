@@ -2,10 +2,10 @@
   "version": 2,
   "builds": [
     { "src": "Backend/**/*.py", "use": "@vercel/python" },
-    { "src": "Frontend/**", "use": "@vercel/static" }
+    { "src": "Frontend/**/*.{js,jsx,css}", "use": "@vercel/static-build" }
   ],
   "routes": [
     { "src": "/analyze", "dest": "/Backend/app.py" },
-    { "src": "/(.*)", "dest": "/Frontend/public/$1" }
+    { "src": "/(.*)", "dest": "/Frontend/index.html" }
   ]
 }
